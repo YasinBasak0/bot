@@ -1,0 +1,24 @@
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG NPM_CONFIG_PREFIX=/home/node/.npm-global
+ARG PATH=$PATH:/home/node/.npm-global/bin
+
+
+RUN apt update
+RUN apt install curl -y
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \ 
+    && apt-get install -y nodejs
+ARG PATH="$PATH" 
+ARG YARN_VERSION=1.22.5
+RUN curl -fSLO --compressed "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz" \
+    && tar -xzf yarn-v$YARN_VERSION.tar.gz -C /opt/ \
+    && ln -snf /opt/yarn-v$YARN_VERSION/bin/yarn /usr/local/bin/yarn \
+    && ln -snf /opt/yarn-v$YARN_VERSION/bin/yarnpkg /usr/local/bin/yarnpkg \
+    && rm yarn-v$YARN_VERSION.tar.gz
+RUN apt install git -y
+# Create app directory
+WORKDIR /usr/src/app
+
+COPY ./actions /usr/src/app/out/bp/data/global/actions
+CMD tail -f /dev/null

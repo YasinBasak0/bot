@@ -1,0 +1,44 @@
+version: '3.1'
+volumes:
+  qbot-data:
+  bot_data:
+services:
+  bot:
+    container_name: bot
+    restart: always
+    image: ${REGISTRY_HOST}/bot/bot:latest
+    command: yarn start
+    volumes:
+      - qbot-data:/root/qbot
+    environment:
+      - REDIS_URL
+      - CLUSTER_ENABLED
+      - BPFS_STORAGE
+      - DATABASE_URL
+      - BP_PRODUCTION
+    ports:
+      - 7890:7890
+  language_service:
+    image: botpress/server:v12_10_6
+    ports:
+      - 3100:3100
+    volumes:
+      - bot_data:/botpress/data
+    command: bash -c "./bp lang --langDir /botpress/data/embeddings"
+  duckling_service:
+    image: botpress/server:v12_10_6
+    ports:
+      - 3200:8000
+    volumes:
+      - bot_data:/botpress/data
+    command: bash -c "./duckling"
+  reverse:
+    container_name: reverse
+    image: nginx
+    ports:
+      - 4400:80
+      - 4443:443
+    volumes:
+      - ./certs/fullchain.pem:/etc/nginx/certs/fullchain.pem
+      - ./certs/privkey.pem:/etc/nginx/certs/privkey.pem
+      - ./nginx.conf:/etc/nginx/nginx.conf
